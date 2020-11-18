@@ -2,6 +2,7 @@
   <calendar
     multi-select="{{multiSelect}}"
     current="{{current}}"
+    weeks-type="{{weeksType}}"
     min-Date="{{minDate}}"
     max-Date="{{maxDate}}"
     date-format="{{dateFormat}}"

@@ -59,8 +59,8 @@ Component({
    */
   data: {
     weekTitle: ['日', '一', '二', '三', '四', '五', '六'],
-    monthType: 'M',
-    yearType: 'y',
+    monthType: 'M', // 年类型标示
+    yearType: 'y', // 年类型标示
     add: 1,
     reduce: -1,
     changeTap: false, // 是否在选择结束日期
@@ -80,21 +80,14 @@ Component({
       const { multiSelect, dateFormat } = this.properties;
       const { currentDate } = this.data;
       const today = formateDateJoinStr(today, dateFormat);
+      let current = null;
       if(multiSelect) {
         const {start = today, end = today} = currentDate;
-        const current = compareDate(start, end);
-        this.getAllDays(formateStrToDate(current.start));
-        this.multiSelectDate = {
-          start: formateStrToDate(current.start),
-          end: formateStrToDate(current.end),
-        };
-        this.setMultiSelectedDayClass( this.multiSelectDate);
+        current = compareDate(start, end);
       } else {
-        const current = currentDate || today;
-        this.getAllDays(formateStrToDate(current));
-        this.selectDate = formateStrToDate(current);
-        this.setSelectedDayClass(this.selectDate);
+        current = currentDate || today;
       }
+      this.getAllDaysAndClasses(current, true);
     },
 
     // 将传递的 current 日期交由内部 data 管理, 便于内部改变数据及方法暴露
@@ -144,7 +137,28 @@ Component({
       }
     },
 
-    //当月显示数据 包括上月 下月残余数据
+    /**
+     * 绘制对应日期内容及样式
+     * @param {String | Object} current
+     * @param {Boolean} changeSelect 是否重新赋值内部选择数据 【this.selectDate ｜ this.multiSelectDate】
+     */
+    getAllDaysAndClasses(current, changeSelect) {
+      const { multiSelect } = this.properties;
+      if(multiSelect) {
+        this.getAllDays(formateStrToDate(current.start));
+        changeSelect && (this.multiSelectDate = formateStrToDate(current, true));
+        this.setMultiSelectedDayClass(this.multiSelectDate);
+      } else {
+        this.getAllDays(formateStrToDate(current));
+        changeSelect && (this.selectDate = formateStrToDate(current));
+        this.setSelectedDayClass(this.selectDate);
+      }
+    },
+
+    /**
+     * 当月显示数据 包括上月 下月残余数据
+     * @param { Object: { year, month, day} } date
+     */
     getAllDays(date) {
       let preDays = getPreDays(date);
       let currentDays = getCurrentDays(date);
@@ -155,55 +169,46 @@ Component({
       });
     },
 
-    // 年月份增减
+    /**
+     * 年月份增减
+     * @param {*} e
+     */
     getMonthDays(e) {
       const { dateFormat, multiSelect } = this.properties;
       const { type, count } = e.currentTarget.dataset;
+      let current = null;
       if(multiSelect) {
         if(this.data.changeTap) {
           return;
         }
         const { currentDate: { start, end } } = this.data;
-        const startMoment = moment(start).add(count, type);
-        const endMoment = moment(end).add(count, type);
-        const startDate = formateStrToDate(startMoment);
-        this.getAllDays(startDate);
-        this.setMultiSelectedDayClass(this.multiSelectDate);
-        this.setData({
-          currentDate: {
-            start: startMoment.format(dateFormat),
-            end: endMoment.format(dateFormat)
-          }
-        });
+        current = {
+          start: moment(start).add(count, type).format(dateFormat),
+          end: moment(end).add(count, type).format(dateFormat),
+        }
       } else {
         const { currentDate } = this.data;
-        const date = moment(currentDate).add(count, type);
-        const newDate = formateStrToDate(date);
-        this.getAllDays(newDate);
-        this.setSelectedDayClass(this.selectDate);
-        this.setData({
-          currentDate: date.format(dateFormat)
-        });
+        current = moment(currentDate).add(count, type).format(dateFormat);
       }
+      this.getAllDaysAndClasses(current, false);
+      this.setData({
+        currentDate: current
+      });
     },
 
-    // 跳至今日
+    /**
+     * 跳至今日
+     */
     jumpToToday() {
       const { multiSelect, dateFormat } = this.properties;
-      const todayDateObj = formateStrToDate(new Date());
-      const todayDateStr = formateDateJoinStr(new Date(), dateFormat);
+      const todayDate = formateDateJoinStr(new Date(), dateFormat);
       let currentDate = null;
       if(multiSelect) {
-        currentDate = { start: todayDateStr, end: todayDateStr }
-        this.getAllDays(formateStrToDate(currentDate.start));
-        this.multiSelectDate = {start: todayDateObj, end: todayDateObj};
-        this.setMultiSelectedDayClass(this.multiSelectDate)
+        currentDate = { start: todayDate, end: todayDate }
       } else {
-        currentDate =  todayDateStr;
-        this.getAllDays(formateStrToDate(currentDate));
-        this.selectDate = todayDateObj;
-        this.setSelectedDayClass(this.selectDate);
+        currentDate =  todayDate;
       }
+      this.getAllDaysAndClasses(currentDate, true);
       this.setData({
         currentDate,
       })
@@ -213,7 +218,10 @@ Component({
       this.triggerEvent('today', detail);
     },
 
-    // 单选日期
+    /**
+     * 日期选择
+     * @param {*} e
+     */
     selectDay(e) {
       const { dateFormat } = this.properties;
       let { date } = e.currentTarget.dataset;
@@ -226,7 +234,10 @@ Component({
       this.triggerEvent('select', detail);
     },
 
-    // 日期范围选择
+    /**
+     * 日期范围选择
+     * @param {*} e 
+     */
     multiSelectDay(e) {
       const { dateFormat } = this.properties;
       const { changeTap } = this.data;
@@ -253,7 +264,10 @@ Component({
       this.triggerEvent('select', detail);
     },
 
-    // 设置选中日期的样式 默认选中当前日期
+    /**
+     * 日期选择样式
+     * @param { Object: { year, month, day } } selectDate 
+     */
     setSelectedDayClass(selectDate) {
       const { year, month, day } = selectDate;
       const { days } = this.data;
@@ -274,7 +288,10 @@ Component({
       });
     },
 
-    // 日期范围选择样式
+    /**
+     * 日期范围选择样式
+     * @param { Object: { year, month, day } } selectDate 
+     */
     setMultiSelectedDayClass(selectDate) {
       const { start, end } = selectDate;
       // 将 date 日期对象转化为 str 在进行比较，避免在12月份无法比较

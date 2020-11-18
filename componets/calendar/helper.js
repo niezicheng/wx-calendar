@@ -3,11 +3,32 @@ const { cloneDeep, isObject } = lodash;
 
 /**
  * 获取某年某月总共多少天
- * @param {*} date 日期对象
+ * @param {Object: { year, month, day }} date 日期对象
  */
 export function getDaysCount(date) {
   const { year, month } = date;
   return new Date(year, month, 0).getDate();
+};
+
+/**
+ * 星期格式化
+ * @param {Int} days 月份天数
+ * @param {Int} week 月份最后一天星期
+ */
+export function formatWeek(days, week) {
+  let result = week - (days % 7 - 1);
+  let currentWeek = result < 0 ? 7 + result : result;
+  return currentWeek;
+};
+
+/**
+ * 获取当月 1 号为星期几
+ * @param {Date} date 当前月最后一天
+ */
+export function getFirstDayWeek(date) {
+  let days = date.getDate(); // 月份天数
+  let week = date.getDay(); // 日期星期
+  return formatWeek(days, week);
 };
 
 /**
@@ -34,7 +55,7 @@ export function getCurrentDays(date) {
 
 /**
  * 获取上月残余天数数据
- * @param {*} date 日期对象
+ * @param {Object: { year, month, day }} date 日期对象
  */
 export function getPreDays(date) {
   const { year, month } = date;
@@ -60,7 +81,7 @@ export function getPreDays(date) {
 
 /**
  * 获取下月残余天数数据
- * @param {*} date 日期对象
+ * @param {Object: { year, month, day }} date 日期对象
  */
 export function getNextDays(date) {
   const { year, month } = date;
@@ -87,20 +108,9 @@ export function getNextDays(date) {
 };
 
 /**
- * 星期格式化
- * @param {int} days 月份天数
- * @param {int} week 月份最后一天星期
- */
-export function formatWeek(days, week) {
-  let result = week - (days % 7 - 1);
-  let currentWeek = result < 0 ? 7 + result : result;
-  return currentWeek;
-};
-
-/**
   * 将日期对象转化为对应格式的
-  * @param {*} date
-  * @param {*} formatType
+  * @param {Object: {year, month, day} | String | Date} date
+  * @param {String} formatType
   */
 export function formateDateJoinStr(date, formatType) {
   let dateObj = date;
@@ -114,31 +124,30 @@ export function formateDateJoinStr(date, formatType) {
 
 /**
  * 将字符串日期转化为对应的 date 对象
- * @param {*} param 可以为字符串也可以为 moment 对象
+ * @param {String | {start, end}} dateStr 可以为字符串也可以为 moment 对象
  */
-export function formateStrToDate(param) {
-  let date = moment(param);
-  return {
-    year: date.year(),
-    month: date.month() + 1,
-    day: date.date(),
-  };
-};
-
-/**
- * 获取当月 1 号为星期几
- * @param {Date} date 当前月最后一天
- */
-export function getFirstDayWeek(date) {
-  let days = date.getDate(); // 月份天数
-  let week = date.getDay(); // 日期星期
-  return formatWeek(days, week);
+export function formateStrToDate(dateStr, multiSelect = false) {
+  let date = null;
+  if(multiSelect) {
+    const { start, end } = dateStr;
+    date = {
+      start: { year: moment(start).year(), month: moment(start).month() + 1, day: moment(start).date() },
+      end: { year: moment(end).year(), month: moment(end).month() + 1, day: moment(end).date() }
+    }
+  } else {
+    date = {
+      year: moment(dateStr).year(),
+      month: moment(dateStr).month() + 1,
+      day: moment(dateStr).date(),
+    }
+  }
+  return date;
 };
 
 /**
  * 比较返回正常顺序对象 startTime < endTime
- * @param {string} start 开始时间
- * @param {string} end 结束时间
+ * @param {String} start 开始时间
+ * @param {String} end 结束时间
  */
 export function compareDate(startDate, endDate) {
   let date = { start: startDate, end: endDate }
@@ -149,6 +158,10 @@ export function compareDate(startDate, endDate) {
     cloneStart.month -= 1;
     cloneEnd.month -= 1;
     if(moment(cloneStart).isAfter(cloneEnd)) {
+      date = { start: endDate, end: startDate }
+    }
+  } else {
+    if(moment(startDate).isAfter(endDate)) {
       date = { start: endDate, end: startDate }
     }
   }

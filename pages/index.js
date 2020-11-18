@@ -1,13 +1,14 @@
 const app = getApp()
-const multiSelect = false;
+const multiSelect = true;
 
 Page({
   data: {
     multiSelect,
     current: multiSelect ? {start: '2020/11/10', end: '2020/11/10'} : '2020/11/10',
+    weeksType: 'cn',
     minDate: "",
     maxDate: "",
-    dateFormat: "YYYY-MM-DD",
+    dateFormat: "YYYY/MM/DD",
   },
 
   // 日期选择函数
