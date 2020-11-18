@@ -1,0 +1,8 @@
+<view class="intro">日历组件</view>
+  <calendar
+    current="{{current}}"
+    min-Date="{{minDate}}"
+    max-Date="{{maxDate}}"
+    month-format="{{monthFormat}}"
+    bind:select="select"
+  />

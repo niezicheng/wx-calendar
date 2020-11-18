@@ -1,0 +1,42 @@
+<!--componets/calendar/index.wxml-->
+<view class="calendar">
+  <view class="calendar_header">
+    <view class="header_preMonth" bindtap="getMonthDays" data-type="{{yearType}}" data-count="{{reduce}}">{{'<<'}}</view>
+    <view class="header_preMonth" bindtap="getMonthDays" data-type="{{monthType}}" data-count="{{reduce}}">{{'<'}}</view>
+    <view wx:if="{{multiSelect}}" class="header_title">
+      <view class="start_date">{{currentDate.start}}</view>
+      -
+      <view class="end_date">{{currentDate.end}}</view>
+    </view>
+    <block wx:else>
+      <view  class="header_title">{{currentDate}}</view>
+    </block>
+    <view class="header_nextMonth" bindtap="getMonthDays" data-type="{{monthType}}" data-count="{{add}}">{{'>'}}</view>
+    <view class="header_nextMonth" bindtap="getMonthDays" data-type="{{yearType}}" data-count="{{add}}" >{{'>>'}}</view>
+  </view>
+
+  <view class="calendar_weeks">
+    <block wx:for="{{weekTitle}}" wx:key="index">
+      <view class="weeks_item">{{item}}</view>
+    </block>
+  </view>
+
+  <view class="calendar_days">
+    <view class="days_grid " wx:for="{{days}}" wx:for-item="day" wx:key="index">
+      <view wx:if="{{day.day<=0}}" class="days_item {{day.class}} {{day.type}}"></view>
+      <block wx:else>
+        <view wx:if="{{day.type === 'pre'}}" class="days_item {{day.class}} {{day.type}}">
+          {{day.day}}
+        </view>
+        <view wx:elif="{{day.type === 'current'}}" class="days_item {{day.class}} {{day.type}}" data-date="{{day}}" bindtap="{{multiSelect ? 'multiSelectDay' : 'selectDay'}}">
+          {{day.day}}
+        </view>
+        <view wx:else class="days_item {{day.class}} {{day.type}}">{{day.day}}</view>
+      </block>
+    </view>
+  </view>
+
+  <view class="calendar_footer">
+    <view class="today_btn" bindtap="jumpToToday">今天</view>
+  </view>
+</view>
