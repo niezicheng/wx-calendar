@@ -1,11 +1,13 @@
 const app = getApp()
+const multiSelect = false;
 
 Page({
   data: {
-    current: {start: '2020/11/10', end: '2020/11/10'},
+    multiSelect,
+    current: multiSelect ? {start: '2020/11/10', end: '2020/11/10'} : '2020/11/10',
     minDate: "",
     maxDate: "",
-    monthFormat: "YYYY/MM/DD"
+    dateFormat: "YYYY-MM-DD",
   },
 
   // 日期选择函数
@@ -15,6 +17,11 @@ Page({
     this.setData({
       current: value,
     });
+  },
+
+  // 今天
+  today(e) {
+    console.log('today', e);
   },
 
   onLoad: function () {

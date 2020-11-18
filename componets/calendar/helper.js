@@ -39,7 +39,7 @@ export function getCurrentDays(date) {
 export function getPreDays(date) {
   const { year, month } = date;
   //上月残余天数
-  const firstDayWeek = getfristDayWeek(new Date(year, month, 0));
+  const firstDayWeek = getFirstDayWeek(new Date(year, month, 0));
   let preMonth = month - 1;
   //上月天数
   let preMonthDaysCount = getDaysCount({ year, month: preMonth });
@@ -65,7 +65,7 @@ export function getPreDays(date) {
 export function getNextDays(date) {
   const { year, month } = date;
   let nextMonth = month + 1;
-  const firstDayWeek = getfristDayWeek(new Date(year, month, 0));
+  const firstDayWeek = getFirstDayWeek(new Date(year, month, 0));
   const currentDaysCount = getDaysCount(date);
   // 下月多余天数
   let nextMonthDaysCount = (35 - firstDayWeek - currentDaysCount) >= 0 ?
@@ -129,17 +129,28 @@ export function formateStrToDate(param) {
  * 获取当月 1 号为星期几
  * @param {Date} date 当前月最后一天
  */
-export function getfristDayWeek(date) {
+export function getFirstDayWeek(date) {
   let days = date.getDate(); // 月份天数
   let week = date.getDay(); // 日期星期
   return formatWeek(days, week);
 };
 
 /**
- * 开始时间是否在结束时间之前
+ * 比较返回正常顺序对象 startTime < endTime
  * @param {string} start 开始时间
  * @param {string} end 结束时间
  */
-export function compareDate(start, end) {
-  return moment(start).isBefore(end);
+export function compareDate(startDate, endDate) {
+  let date = { start: startDate, end: endDate }
+  // 处理传入 { year, month, day } 对象 month 为12的情况
+  if(startDate.month && endDate.month) {
+    let cloneStart = cloneDeep(startDate);
+    let cloneEnd = cloneDeep(endDate);
+    cloneStart.month -= 1;
+    cloneEnd.month -= 1;
+    if(moment(cloneStart).isAfter(cloneEnd)) {
+      date = { start: endDate, end: startDate }
+    }
+  }
+  return date;
 }

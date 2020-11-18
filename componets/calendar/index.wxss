@@ -6,6 +6,7 @@
   box-sizing: border-box;
 }
 
+/* 日历头部 */
 .calendar_header {
   line-height: 70rpx;
   display: flex;
@@ -25,6 +26,7 @@
   flex: 1;
   display: flex;
   flex-direction: row;
+  justify-content: center;
 }
 
 .start_date,
@@ -32,6 +34,7 @@
   flex: 1;
 }
 
+/* 日历星期 */
 .calendar_weeks {
   display: flex;
   text-align: center;
@@ -44,6 +47,7 @@
   flex: 1;
 }
 
+/* 日历天数 */
 .calendar_days {
   display: flex;
   flex-wrap: wrap;
@@ -95,6 +99,25 @@
 
 .middleSelectDays {
   background: rgb(49, 120, 228);
+  color: #fff;
+}
+
+.startNoSelectDay {
+  background: rgb(239, 241, 245);
+  border-top-left-radius: 50%;
+  border-bottom-left-radius: 50%;
+  color: #fff;
+}
+
+.endNoSelectDay {
+  background: rgb(239, 241, 245);
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
+  color: #fff;
+}
+
+.middleNoSelectDays {
+  background: rgb(239, 241, 245);
   color: #fff;
 }
 

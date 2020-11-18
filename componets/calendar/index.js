@@ -7,7 +7,7 @@ import {
   formateStrToDate,
   compareDate,
 } from './helper';
-import { moment, lodash } from '../../utils/index';
+import { moment } from '../../utils/index';
 
 Component({
   /**
@@ -24,7 +24,7 @@ Component({
      */
     multiSelect: {
       type: Boolean,
-      value: true
+      value: false
     },
     /**
      * 最小日期
@@ -77,25 +77,38 @@ Component({
   methods: {
     // 初始化日期及其样式信息
     initDate() {
-      const { multiSelect } = this.properties;
+      const { multiSelect, dateFormat } = this.properties;
       const { currentDate } = this.data;
-      if(multiSelect && currentDate.start) {
-        this.getAllDays(formateStrToDate(currentDate.start));
+      const today = formateDateJoinStr(today, dateFormat);
+      if(multiSelect) {
+        const {start = today, end = today} = currentDate;
+        const current = compareDate(start, end);
+        this.getAllDays(formateStrToDate(current.start));
         this.multiSelectDate = {
-          start: formateStrToDate(currentDate.start),
-          end: formateStrToDate(currentDate.end),
+          start: formateStrToDate(current.start),
+          end: formateStrToDate(current.end),
         };
         this.setMultiSelectedDayClass( this.multiSelectDate);
       } else {
-        this.getAllDays(formateStrToDate(currentDate));
-        this.selectDate = formateStrToDate(currentDate);
+        const current = currentDate || today;
+        this.getAllDays(formateStrToDate(current));
+        this.selectDate = formateStrToDate(current);
         this.setSelectedDayClass(this.selectDate);
       }
     },
 
     // 将传递的 current 日期交由内部 data 管理, 便于内部改变数据及方法暴露
     currentTypeChange: function(newVal, oldVal) {
-      let currentDate = newVal || new Date().toLocaleDateString();
+      const { dateFormat, multiSelect }  = this.properties;
+      let currentDate = newVal;
+      if(multiSelect) {
+        currentDate = {
+          start: newVal.start && formateDateJoinStr(newVal.start, dateFormat),
+          end: newVal.end && formateDateJoinStr(newVal.end, dateFormat),
+        }
+      } else {
+        currentDate = currentDate && formateDateJoinStr(newVal, dateFormat);
+      }
       this.setData({
         currentDate,
       })
@@ -182,16 +195,22 @@ Component({
       let currentDate = null;
       if(multiSelect) {
         currentDate = { start: todayDateStr, end: todayDateStr }
+        this.getAllDays(formateStrToDate(currentDate.start));
         this.multiSelectDate = {start: todayDateObj, end: todayDateObj};
         this.setMultiSelectedDayClass(this.multiSelectDate)
       } else {
         currentDate =  todayDateStr;
+        this.getAllDays(formateStrToDate(currentDate));
         this.selectDate = todayDateObj;
         this.setSelectedDayClass(this.selectDate);
       }
       this.setData({
         currentDate,
       })
+      const detail = {
+        value: currentDate,
+      };
+      this.triggerEvent('today', detail);
     },
 
     // 单选日期
@@ -217,20 +236,8 @@ Component({
       // 结束日期
       if(changeTap && date) {
         const { start } = this.data.currentDate;
-        const temp = compareDate(start, strDate);
-        if(temp) {
-          this.multiSelectDate = { ...this.multiSelectDate, end: date };
-          currentDate = {
-            start,
-            end: strDate
-          };
-        } else {
-          this.multiSelectDate = { start: date, end: this.multiSelectDate.start };
-          currentDate = {
-            end: start,
-            start: strDate
-          };
-        }
+        currentDate = compareDate(start, strDate);
+        this.multiSelectDate = compareDate(this.multiSelectDate.start, date);
       } else {
         // 开始日期
         currentDate = { start: strDate, end: '' };
@@ -270,7 +277,8 @@ Component({
     // 日期范围选择样式
     setMultiSelectedDayClass(selectDate) {
       const { start, end } = selectDate;
-      if(moment(start).isSame(end)) {
+      // 将 date 日期对象转化为 str 在进行比较，避免在12月份无法比较
+      if(moment(formateDateJoinStr(start)).isSame(formateDateJoinStr(end))) {
         this.setSelectedDayClass(start);
         return;
       }
@@ -287,6 +295,19 @@ Component({
             }
             if(start.day < day.day && day.day < end.day) {
               day.class = 'middleSelectDays'
+            }
+          }
+        } else {
+          day.class = '';
+          if(day.day === start.day) {
+            day.class = 'startNoSelectDay'
+          }
+          if(end) {
+            if(day.day === end.day) {
+              day.class = 'endNoSelectDay'
+            }
+            if(start.day < day.day && day.day < end.day) {
+              day.class = 'middleNoSelectDays'
             }
           }
         }
